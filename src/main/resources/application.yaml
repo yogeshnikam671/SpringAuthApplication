@@ -1,0 +1,6 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/auth-db
+      database: auth-db
+      auto-index-creation: true
