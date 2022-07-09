@@ -1,2 +1,6 @@
 
-http://localhost:8080/v1/auth/dummy
+http://localhost:8080/v1/auth/dummy-unauthorized
+
+###
+
+http://localhost:8080/v1/auth/dummy-authorized
