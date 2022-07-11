@@ -31,6 +31,8 @@ dependencies {
     testImplementation("io.mockk:mockk:1.10.6")
     testImplementation("io.kotlintest:kotlintest-assertions:3.0.0")
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
+    testImplementation("org.mockito:mockito-junit-jupiter:4.6.1")
+    testImplementation("org.mockito:mockito-inline:4.6.1")
 }
 
 tasks.withType<KotlinCompile> {

@@ -1,4 +1,7 @@
 spring:
+  security:
+    bcrypt:
+      password-strength: 16
   data:
     mongodb:
       uri: mongodb://localhost:27017/auth-db

@@ -1,0 +1,12 @@
+spring:
+  security:
+    bcrypt:
+      password-strength: 16
+  data:
+    mongodb:
+      uri: mongodb://mongo/dummy
+      database: dummy
+      auto-index-creation: true
+  mongodb:
+    embedded:
+      version: 3.5.5
