@@ -12,7 +12,7 @@ class UserAuthService(
     private val userAuthRepository: UserAuthRepository
 ) {
 
-    fun registerUser(username: String, password: String) : Mono<Boolean> {
+    fun registerUser(username: String, password: String): Mono<Boolean> {
         val hashedPassword = bcryptPasswordEncoder.encode(password)
         val hashedUserAuthData = UserAuthData(
             username,
@@ -20,5 +20,4 @@ class UserAuthService(
         )
         return userAuthRepository.save(hashedUserAuthData).map { true }
     }
-
 }

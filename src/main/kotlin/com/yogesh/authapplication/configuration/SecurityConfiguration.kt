@@ -13,10 +13,10 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 class SecurityConfiguration(
     @Value("\${spring.security.bcrypt.password-strength}")
     private val bcryptPasswordStrength: Int
-)  {
+) {
 
     @Bean
-    fun filterChain(http: ServerHttpSecurity) : SecurityWebFilterChain {
+    fun filterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         http.csrf().disable()
             .authorizeExchange()
             .pathMatchers("/v1/auth/dummy-unauthorized", "/v1/auth/user/registration")

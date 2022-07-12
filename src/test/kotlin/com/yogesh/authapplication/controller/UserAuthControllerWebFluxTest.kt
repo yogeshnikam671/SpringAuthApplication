@@ -1,8 +1,8 @@
 package com.yogesh.authapplication.controller
 
-import com.yogesh.authapplication.service.UserAuthService
 import com.yogesh.authapplication.configuration.SecurityTestConfiguration
 import com.yogesh.authapplication.model.UserAuthData
+import com.yogesh.authapplication.service.UserAuthService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito

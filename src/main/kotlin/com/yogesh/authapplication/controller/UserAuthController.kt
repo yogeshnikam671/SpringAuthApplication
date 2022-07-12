@@ -1,7 +1,7 @@
 package com.yogesh.authapplication.controller
 
-import com.yogesh.authapplication.service.UserAuthService
 import com.yogesh.authapplication.model.UserAuthData
+import com.yogesh.authapplication.service.UserAuthService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -16,15 +16,15 @@ class UserAuthController(
 ) {
 
     @GetMapping("/dummy-unauthorized")
-    fun dummyUnAuthorized() : Mono<Any> = Mono.just(mapOf("key" to "value"))
+    fun dummyUnAuthorized(): Mono<Any> = Mono.just(mapOf("key" to "value"))
 
     @GetMapping("/dummy-authorized")
-    fun dummyAuthorized() : Mono<Any> = Mono.just(mapOf("key" to "value"))
+    fun dummyAuthorized(): Mono<Any> = Mono.just(mapOf("key" to "value"))
 
     @PostMapping("/user/registration")
     fun registerUser(
         @RequestBody userAuthData: UserAuthData
-    ) : Mono<Boolean> {
+    ): Mono<Boolean> {
         return userAuthService.registerUser(userAuthData.username, userAuthData.password)
     }
 }
