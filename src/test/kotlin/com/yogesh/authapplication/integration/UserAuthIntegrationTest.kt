@@ -2,6 +2,7 @@ package com.yogesh.authapplication.integration
 
 import com.yogesh.authapplication.configuration.SecurityTestConfiguration
 import com.yogesh.authapplication.constant.ErrorMessages.userAlreadyExists
+import com.yogesh.authapplication.constant.ErrorMessages.userDoesNotExist
 import com.yogesh.authapplication.model.UserAuthData
 import com.yogesh.authapplication.repository.UserAuthRepository
 import io.kotlintest.shouldBe
@@ -35,6 +36,7 @@ class UserAuthIntegrationTest(
     private val password = "password"
     private val plainUserAuthData = UserAuthData(username, password)
     private val hashedPassword = "hashedPassword"
+    private val hashedUserAuthData = UserAuthData(username, hashedPassword)
 
     // mocked dependencies
     /*
@@ -47,6 +49,7 @@ class UserAuthIntegrationTest(
     @BeforeEach
     fun setup() {
         Mockito.`when`(bCryptPasswordEncoder.encode(password)).thenReturn(hashedPassword)
+        Mockito.`when`(bCryptPasswordEncoder.matches(password, hashedPassword)).thenReturn(true)
     }
 
     @AfterEach
@@ -74,7 +77,7 @@ class UserAuthIntegrationTest(
 
     @Test
     fun `should not register user in the system if a user with same username already exists`() {
-        userAuthRepository.save(plainUserAuthData).block()
+        userAuthRepository.save(hashedUserAuthData).block()
 
         webTestClient.post()
             .uri("/v1/auth/user/registration")
@@ -86,6 +89,36 @@ class UserAuthIntegrationTest(
             .expectBody<Exception>()
             .consumeWith {
                 it.responseBody!!.message shouldBe userAlreadyExists
+            }
+    }
+
+    @Test
+    fun `should authenticate user`() {
+        userAuthRepository.save(hashedUserAuthData).block()
+
+        webTestClient.post()
+            .uri("/v1/auth/user/authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(plainUserAuthData))
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().is2xxSuccessful
+            .expectBody<Boolean>()
+            .isEqualTo(true)
+    }
+
+    @Test
+    fun `should throw error if the user to be authenticated does not exist`() {
+        webTestClient.post()
+            .uri("/v1/auth/user/authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(plainUserAuthData))
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().is5xxServerError
+            .expectBody<Exception>()
+            .consumeWith {
+                it.responseBody!!.message shouldBe userDoesNotExist
             }
     }
 }

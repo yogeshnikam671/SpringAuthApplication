@@ -25,6 +25,13 @@ class UserAuthController(
     fun registerUser(
         @RequestBody userAuthData: UserAuthData
     ): Mono<Boolean> {
-        return userAuthService.registerUser(userAuthData.username, userAuthData.password)
+        return userAuthService.register(userAuthData.username, userAuthData.password)
+    }
+
+    @PostMapping("/user/authentication")
+    fun authenticateUser(
+        @RequestBody userAuthData: UserAuthData
+    ): Mono<Boolean> {
+        return userAuthService.authenticate(userAuthData)
     }
 }

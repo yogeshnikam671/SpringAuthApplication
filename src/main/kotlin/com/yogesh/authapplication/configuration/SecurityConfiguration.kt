@@ -19,7 +19,7 @@ class SecurityConfiguration(
     fun filterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         http.csrf().disable()
             .authorizeExchange()
-            .pathMatchers("/v1/auth/dummy-unauthorized", "/v1/auth/user/registration")
+            .pathMatchers("/v1/auth/dummy-unauthorized", "/v1/auth/user/*")
             .permitAll()
         return http.build()
     }

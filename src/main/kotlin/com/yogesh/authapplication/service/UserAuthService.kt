@@ -1,6 +1,9 @@
 package com.yogesh.authapplication.service
 
+import com.yogesh.authapplication.constant.ErrorMessages.invalidPassword
 import com.yogesh.authapplication.constant.ErrorMessages.userAlreadyExists
+import com.yogesh.authapplication.constant.ErrorMessages.userDoesNotExist
+import com.yogesh.authapplication.constant.Messages.userAuthenticatedSuccessfully
 import com.yogesh.authapplication.constant.Messages.userRegisteredSuccessfully
 import com.yogesh.authapplication.model.UserAuthData
 import com.yogesh.authapplication.repository.UserAuthRepository
@@ -8,6 +11,7 @@ import org.apache.logging.log4j.LogManager
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class UserAuthService(
@@ -16,7 +20,7 @@ class UserAuthService(
 ) {
     private val logger = LogManager.getLogger(UserAuthService::class)
 
-    fun registerUser(username: String, password: String): Mono<Boolean> {
+    fun register(username: String, password: String): Mono<Boolean> {
         val hashedPassword = bcryptPasswordEncoder.encode(password)
         val hashedUserAuthData = UserAuthData(
             username,
@@ -30,6 +34,21 @@ class UserAuthService(
             logger.error(userAlreadyExists)
         }.doOnSuccess {
             logger.info(userRegisteredSuccessfully)
+        }
+    }
+
+    fun authenticate(userAuthData: UserAuthData): Mono<Boolean> {
+        val (username, password) = userAuthData
+
+        return userAuthRepository.findByUsername(username).map { hashedUserAuthData ->
+            bcryptPasswordEncoder.matches(password, hashedUserAuthData.password)
+        }.switchIfEmpty {
+            Mono.error(Exception(userDoesNotExist))
+        }.doOnError {
+            logger.info(userDoesNotExist)
+        }.doOnSuccess {
+            val logMessage = if (it) userAuthenticatedSuccessfully else invalidPassword
+            logger.info(logMessage)
         }
     }
 }

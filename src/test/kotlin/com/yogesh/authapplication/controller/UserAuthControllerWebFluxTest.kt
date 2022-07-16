@@ -39,11 +39,27 @@ class UserAuthControllerWebFluxTest(
 
     @Test
     fun `should register user`() {
-        Mockito.`when`(userAuthService.registerUser(username, password))
+        Mockito.`when`(userAuthService.register(username, password))
             .thenReturn(Mono.just(true))
 
         webTestClient.post()
             .uri("/v1/auth/user/registration")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(plainUserAuthData))
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().is2xxSuccessful
+            .expectBody<Boolean>()
+            .isEqualTo(true)
+    }
+
+    @Test
+    fun `should authenticate user`() {
+        Mockito.`when`(userAuthService.authenticate(plainUserAuthData))
+            .thenReturn(Mono.just(true))
+
+        webTestClient.post()
+            .uri("/v1/auth/user/authentication")
             .contentType(MediaType.APPLICATION_JSON)
             .body(BodyInserters.fromValue(plainUserAuthData))
             .accept(MediaType.APPLICATION_JSON)

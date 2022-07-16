@@ -10,3 +10,21 @@ POST http://localhost:8080/v1/auth/user/registration
 Content-Type: application/json
 
 { "username": "yogesh", "password": "yogesh_dada" }
+
+### valid password authentication
+POST http://localhost:8080/v1/auth/user/authentication
+Content-Type: application/json
+
+{ "username": "yogesh", "password": "yogesh_dada" }
+
+### invalid password authentication
+POST http://localhost:8080/v1/auth/user/authentication
+Content-Type: application/json
+
+{ "username": "yogesh", "password": "wrong_password" }
+
+### invalid username authentication
+POST http://localhost:8080/v1/auth/user/authentication
+Content-Type: application/json
+
+{ "username": "aditya", "password": "yogesh_dada" }

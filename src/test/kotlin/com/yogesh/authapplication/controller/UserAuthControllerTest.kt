@@ -17,9 +17,8 @@ class UserAuthControllerTest {
 
     // mocked dependencies
     private val userAuthService = mockk<UserAuthService> {
-        every {
-            registerUser(any(), any())
-        } returns Mono.just(true)
+        every { register(any(), any()) } returns Mono.just(true)
+        every { authenticate(any()) } returns Mono.just(true)
     }
 
     private val userAuthController = UserAuthController(
@@ -31,7 +30,16 @@ class UserAuthControllerTest {
         userAuthController.registerUser(plainUserAuthData).block()
 
         verify(exactly = 1) {
-            userAuthService.registerUser(username, password)
+            userAuthService.register(username, password)
+        }
+    }
+
+    @Test
+    fun `should authenticate user`() {
+        userAuthController.authenticateUser(plainUserAuthData).block()
+
+        verify(exactly = 1) {
+            userAuthService.authenticate(plainUserAuthData)
         }
     }
 }
