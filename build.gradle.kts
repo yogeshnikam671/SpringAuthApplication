@@ -30,8 +30,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo")
     testImplementation("io.projectreactor:reactor-test")
-    testImplementation("io.mockk:mockk:1.10.6")
-    testImplementation("io.kotlintest:kotlintest-assertions:3.0.0")
+    testImplementation("io.mockk:mockk:1.12.4")
+    testImplementation("io.kotlintest:kotlintest-assertions:3.4.2")
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.4.2")
     testImplementation("org.mockito:mockito-junit-jupiter:4.6.1")
     testImplementation("org.mockito:mockito-inline:4.6.1")
@@ -72,3 +72,5 @@ val ktlintFormat by tasks.creating(JavaExec::class) {
     mainClass.set("com.pinterest.ktlint.Main")
     args = listOf("-F", "src/**/*.kt")
 }
+
+apply(from = "$projectDir/gradle/preCommit.gradle")
