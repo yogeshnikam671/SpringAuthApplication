@@ -1,6 +1,6 @@
 package com.yogesh.authapplication.controller
 
-import com.yogesh.authapplication.model.UserAuthData
+import com.yogesh.authapplication.model.User
 import com.yogesh.authapplication.service.UserAuthService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,15 +23,15 @@ class UserAuthController(
 
     @PostMapping("/user/registration")
     fun registerUser(
-        @RequestBody userAuthData: UserAuthData
+        @RequestBody user: User
     ): Mono<Boolean> {
-        return userAuthService.register(userAuthData.username, userAuthData.password)
+        return userAuthService.register(user)
     }
 
     @PostMapping("/user/authentication")
     fun authenticateUser(
-        @RequestBody userAuthData: UserAuthData
+        @RequestBody user: User
     ): Mono<Boolean> {
-        return userAuthService.authenticate(userAuthData)
+        return userAuthService.authenticate(user)
     }
 }

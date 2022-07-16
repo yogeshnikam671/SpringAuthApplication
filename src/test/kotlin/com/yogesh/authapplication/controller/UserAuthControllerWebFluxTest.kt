@@ -1,7 +1,7 @@
 package com.yogesh.authapplication.controller
 
 import com.yogesh.authapplication.configuration.SecurityTestConfiguration
-import com.yogesh.authapplication.model.UserAuthData
+import com.yogesh.authapplication.model.User
 import com.yogesh.authapplication.service.UserAuthService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -31,7 +31,7 @@ class UserAuthControllerWebFluxTest(
     // mocked data
     private val username = "username"
     private val password = "password"
-    private val plainUserAuthData = UserAuthData(username, password)
+    private val plainUser = User(username, password)
 
     // mocked dependencies
     @MockBean
@@ -39,13 +39,13 @@ class UserAuthControllerWebFluxTest(
 
     @Test
     fun `should register user`() {
-        Mockito.`when`(userAuthService.register(username, password))
+        Mockito.`when`(userAuthService.register(plainUser))
             .thenReturn(Mono.just(true))
 
         webTestClient.post()
             .uri("/v1/auth/user/registration")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(plainUserAuthData))
+            .body(BodyInserters.fromValue(plainUser))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().is2xxSuccessful
@@ -55,13 +55,13 @@ class UserAuthControllerWebFluxTest(
 
     @Test
     fun `should authenticate user`() {
-        Mockito.`when`(userAuthService.authenticate(plainUserAuthData))
+        Mockito.`when`(userAuthService.authenticate(plainUser))
             .thenReturn(Mono.just(true))
 
         webTestClient.post()
             .uri("/v1/auth/user/authentication")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(plainUserAuthData))
+            .body(BodyInserters.fromValue(plainUser))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().is2xxSuccessful

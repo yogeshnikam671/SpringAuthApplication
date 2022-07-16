@@ -2,7 +2,7 @@ package com.yogesh.authapplication.service
 
 import com.yogesh.authapplication.constant.ErrorMessages.userAlreadyExists
 import com.yogesh.authapplication.constant.ErrorMessages.userDoesNotExist
-import com.yogesh.authapplication.model.UserAuthData
+import com.yogesh.authapplication.model.User
 import com.yogesh.authapplication.repository.UserAuthRepository
 import io.kotlintest.shouldBe
 import io.mockk.every
@@ -22,8 +22,8 @@ class UserAuthServiceTest {
     private val username = "username"
     private val password = "password"
     private val hashedPassword = "hashedPassword"
-    private val hashedUserAuthData = UserAuthData(username, hashedPassword)
-    private val plainUserAuthData = UserAuthData(username, password)
+    private val hashedUser = User(username, hashedPassword)
+    private val plainUser = User(username, password)
 
     // mocked dependencies
     private val bcryptPasswordEncoder = mockk<BCryptPasswordEncoder> {
@@ -43,13 +43,13 @@ class UserAuthServiceTest {
 
         @BeforeEach
         fun setup() {
-            every { userAuthRepository.save(any()) } returns hashedUserAuthData.toMono()
+            every { userAuthRepository.save(any()) } returns hashedUser.toMono()
             every { userAuthRepository.findByUsername(username) } returns Mono.empty()
         }
 
         @Test
         fun `should hash the plain text password using bcrypt password encoder`() {
-            userAuthService.register(username, password).block()
+            userAuthService.register(plainUser).block()
 
             verify(exactly = 1) {
                 bcryptPasswordEncoder.encode(password)
@@ -58,10 +58,10 @@ class UserAuthServiceTest {
 
         @Test
         fun `should save the user with hashed password in database and return true`() {
-            val result = userAuthService.register(username, password).block()
+            val result = userAuthService.register(plainUser).block()
 
             verify(exactly = 1) {
-                userAuthRepository.save(hashedUserAuthData)
+                userAuthRepository.save(hashedUser)
             }
             result shouldBe true
         }
@@ -70,9 +70,9 @@ class UserAuthServiceTest {
         fun `should not register user if the user already exists`() {
             every {
                 userAuthRepository.findByUsername(username)
-            } returns hashedUserAuthData.toMono()
+            } returns hashedUser.toMono()
 
-            val registerUserMono = userAuthService.register(username, password)
+            val registerUserMono = userAuthService.register(plainUser)
 
             registerUserMono.test().consumeErrorWith {
                 it.message shouldBe userAlreadyExists
@@ -85,30 +85,30 @@ class UserAuthServiceTest {
 
         @BeforeEach
         fun setup() {
-            every { userAuthRepository.findByUsername(username) } returns hashedUserAuthData.toMono()
+            every { userAuthRepository.findByUsername(username) } returns hashedUser.toMono()
         }
 
         @Test
         fun `should return error if the user does not exist`() {
             every { userAuthRepository.findByUsername(username) } returns Mono.empty()
 
-            val authenticateMono = userAuthService.authenticate(plainUserAuthData)
+            val authenticateMono = userAuthService.authenticate(plainUser)
 
             authenticateMono.test().consumeErrorWith {
                 it.message shouldBe userDoesNotExist
             }.verify()
 
             verify(exactly = 1) {
-                userAuthRepository.findByUsername(plainUserAuthData.username)
+                userAuthRepository.findByUsername(plainUser.username)
             }
         }
 
         @Test
         fun `should verify the password if the user exists`() {
-            userAuthService.authenticate(plainUserAuthData).block()
+            userAuthService.authenticate(plainUser).block()
 
             verify(exactly = 1) {
-                bcryptPasswordEncoder.matches(plainUserAuthData.password, hashedUserAuthData.password)
+                bcryptPasswordEncoder.matches(plainUser.password, hashedUser.password)
             }
         }
 
@@ -116,7 +116,7 @@ class UserAuthServiceTest {
         fun `should return true if the user password is valid`() {
             every { bcryptPasswordEncoder.matches(any(), any()) } returns true
 
-            val response = userAuthService.authenticate(plainUserAuthData).block()
+            val response = userAuthService.authenticate(plainUser).block()
 
             response shouldBe true
         }
@@ -125,7 +125,7 @@ class UserAuthServiceTest {
         fun `should return false if the user password is not valid`() {
             every { bcryptPasswordEncoder.matches(any(), any()) } returns false
 
-            val response = userAuthService.authenticate(plainUserAuthData).block()
+            val response = userAuthService.authenticate(plainUser).block()
 
             response shouldBe false
         }

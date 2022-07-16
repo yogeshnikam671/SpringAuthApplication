@@ -3,7 +3,7 @@ package com.yogesh.authapplication.integration
 import com.yogesh.authapplication.configuration.SecurityTestConfiguration
 import com.yogesh.authapplication.constant.ErrorMessages.userAlreadyExists
 import com.yogesh.authapplication.constant.ErrorMessages.userDoesNotExist
-import com.yogesh.authapplication.model.UserAuthData
+import com.yogesh.authapplication.model.User
 import com.yogesh.authapplication.repository.UserAuthRepository
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
@@ -34,9 +34,9 @@ class UserAuthIntegrationTest(
     // mocked data
     private val username = "username"
     private val password = "password"
-    private val plainUserAuthData = UserAuthData(username, password)
+    private val plainUser = User(username, password)
     private val hashedPassword = "hashedPassword"
-    private val hashedUserAuthData = UserAuthData(username, hashedPassword)
+    private val hashedUser = User(username, hashedPassword)
 
     // mocked dependencies
     /*
@@ -63,7 +63,7 @@ class UserAuthIntegrationTest(
         webTestClient.post()
             .uri("/v1/auth/user/registration")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(plainUserAuthData))
+            .body(BodyInserters.fromValue(plainUser))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().is2xxSuccessful
@@ -77,12 +77,12 @@ class UserAuthIntegrationTest(
 
     @Test
     fun `should not register user in the system if a user with same username already exists`() {
-        userAuthRepository.save(hashedUserAuthData).block()
+        userAuthRepository.save(hashedUser).block()
 
         webTestClient.post()
             .uri("/v1/auth/user/registration")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(plainUserAuthData))
+            .body(BodyInserters.fromValue(plainUser))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().is5xxServerError
@@ -94,12 +94,12 @@ class UserAuthIntegrationTest(
 
     @Test
     fun `should authenticate user`() {
-        userAuthRepository.save(hashedUserAuthData).block()
+        userAuthRepository.save(hashedUser).block()
 
         webTestClient.post()
             .uri("/v1/auth/user/authentication")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(plainUserAuthData))
+            .body(BodyInserters.fromValue(plainUser))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().is2xxSuccessful
@@ -112,7 +112,7 @@ class UserAuthIntegrationTest(
         webTestClient.post()
             .uri("/v1/auth/user/authentication")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(plainUserAuthData))
+            .body(BodyInserters.fromValue(plainUser))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().is5xxServerError
