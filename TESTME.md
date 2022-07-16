@@ -31,3 +31,6 @@ Also, you will need to define the following property in application-test.yaml -
 spring.mongodb.embedded.version = 3.5.5
 
 If the above is not configured, the spring integration test will throw some unwanted errors.
+
+### RANDOM NOTE #1 -
+We have to give the property server.error.include-message=always if we want to  send the error message in case of an error response from the server.

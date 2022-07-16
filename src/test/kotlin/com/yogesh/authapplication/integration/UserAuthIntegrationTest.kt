@@ -1,6 +1,7 @@
 package com.yogesh.authapplication.integration
 
 import com.yogesh.authapplication.configuration.SecurityTestConfiguration
+import com.yogesh.authapplication.constant.ErrorMessages.userAlreadyExists
 import com.yogesh.authapplication.model.UserAuthData
 import com.yogesh.authapplication.repository.UserAuthRepository
 import io.kotlintest.shouldBe
@@ -69,5 +70,22 @@ class UserAuthIntegrationTest(
         hashedUserAuthData shouldNotBe null
         hashedUserAuthData!!.username shouldBe username
         hashedUserAuthData.password shouldBe hashedPassword
+    }
+
+    @Test
+    fun `should not register user in the system if a user with same username already exists`() {
+        userAuthRepository.save(plainUserAuthData).block()
+
+        webTestClient.post()
+            .uri("/v1/auth/user/registration")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(plainUserAuthData))
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().is5xxServerError
+            .expectBody<Exception>()
+            .consumeWith {
+                it.responseBody!!.message shouldBe userAlreadyExists
+            }
     }
 }

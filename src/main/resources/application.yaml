@@ -7,3 +7,6 @@ spring:
       uri: mongodb://localhost:27017/auth-db
       database: auth-db
       auto-index-creation: true
+server:
+  error:
+    include-message: always  # this property makes sure we get message returned by server in an error response
