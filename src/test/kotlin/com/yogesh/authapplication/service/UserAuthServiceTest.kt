@@ -7,10 +7,13 @@ import com.yogesh.authapplication.repository.UserAuthRepository
 import io.kotlintest.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.security.authentication.ReactiveAuthenticationManager
+import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -24,6 +27,9 @@ class UserAuthServiceTest {
     private val hashedPassword = "hashedPassword"
     private val hashedUser = User(username, hashedPassword)
     private val plainUser = User(username, password)
+    private val validAuthentication = mockk<Authentication> {
+        every { isAuthenticated } returns true
+    }
 
     // mocked dependencies
     private val bcryptPasswordEncoder = mockk<BCryptPasswordEncoder> {
@@ -31,11 +37,15 @@ class UserAuthServiceTest {
         every { matches(any(), any()) } returns true
     }
     private val userAuthRepository = mockk<UserAuthRepository>(relaxed = true)
+    private val reactiveAuthenticationManager = mockk<ReactiveAuthenticationManager> {
+        every { authenticate(any()) } returns validAuthentication.toMono()
+    }
 
     // tests
     private val userAuthService = UserAuthService(
         bcryptPasswordEncoder,
-        userAuthRepository
+        userAuthRepository,
+        reactiveAuthenticationManager
     )
 
     @Nested
@@ -128,6 +138,23 @@ class UserAuthServiceTest {
             val response = userAuthService.authenticate(plainUser).block()
 
             response shouldBe false
+        }
+    }
+
+    @Nested
+    inner class AuthenticateUserUsingAuthenticationManagerTests {
+        @Test
+        fun `should authenticate user using authentication manager`() {
+            val response = userAuthService.authenticateUsingAuthenticationManager(plainUser).block()
+
+            val authenticationSlot = slot<Authentication>()
+            verify(exactly = 1) {
+                reactiveAuthenticationManager.authenticate(capture(authenticationSlot))
+            }
+
+            authenticationSlot.captured.credentials shouldBe plainUser.password
+            authenticationSlot.captured.principal shouldBe plainUser.username
+            response shouldBe true
         }
     }
 }

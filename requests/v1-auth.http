@@ -5,11 +5,15 @@ http://localhost:8080/v1/auth/dummy-unauthorized
 
 http://localhost:8080/v1/auth/dummy-authorized
 
+
 ###
 POST http://localhost:8080/v1/auth/user/registration
 Content-Type: application/json
 
 { "username": "yogesh", "password": "yogesh_dada" }
+
+
+
 
 ### valid password authentication
 POST http://localhost:8080/v1/auth/user/authentication
@@ -25,6 +29,27 @@ Content-Type: application/json
 
 ### invalid username authentication
 POST http://localhost:8080/v1/auth/user/authentication
+Content-Type: application/json
+
+{ "username": "aditya", "password": "yogesh_dada" }
+
+
+
+
+### valid password authentication - AUTH_MANAGER
+POST http://localhost:8080/v1/auth/user/spring-authentication
+Content-Type: application/json
+
+{ "username": "yogesh", "password": "yogesh_dada" }
+
+### invalid password authentication - AUTH_MANAGER
+POST http://localhost:8080/v1/auth/user/spring-authentication
+Content-Type: application/json
+
+{ "username": "yogesh", "password": "wrong_password" }
+
+### invalid username authentication - AUTH_MANAGER
+POST http://localhost:8080/v1/auth/user/spring-authentication
 Content-Type: application/json
 
 { "username": "aditya", "password": "yogesh_dada" }

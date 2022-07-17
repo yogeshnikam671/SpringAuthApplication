@@ -9,6 +9,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
@@ -93,7 +94,7 @@ class UserAuthIntegrationTest(
     }
 
     @Test
-    fun `should authenticate user`() {
+    fun `should authenticate user and return true if the user is valid`() {
         userAuthRepository.save(hashedUser).block()
 
         webTestClient.post()
@@ -105,6 +106,22 @@ class UserAuthIntegrationTest(
             .expectStatus().is2xxSuccessful
             .expectBody<Boolean>()
             .isEqualTo(true)
+    }
+
+    @Test
+    fun `should authenticate user and return false if the user password is not valid`() {
+        Mockito.`when`(bCryptPasswordEncoder.matches(password, hashedPassword)).thenReturn(false)
+        userAuthRepository.save(hashedUser).block()
+
+        webTestClient.post()
+            .uri("/v1/auth/user/authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(plainUser))
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().is2xxSuccessful
+            .expectBody<Boolean>()
+            .isEqualTo(false)
     }
 
     @Test
@@ -120,5 +137,53 @@ class UserAuthIntegrationTest(
             .consumeWith {
                 it.responseBody!!.message shouldBe userDoesNotExist
             }
+    }
+
+    @Nested
+    inner class AuthenticationUsingAuthenticationManager {
+        @Test
+        fun `should authenticate user and return true if valid user`() {
+            userAuthRepository.save(hashedUser).block()
+
+            webTestClient.post()
+                .uri("/v1/auth/user/spring-authentication")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(plainUser))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is2xxSuccessful
+                .expectBody<Boolean>()
+                .isEqualTo(true)
+        }
+
+        @Test
+        fun `should authenticate user and return error if the password is not valid`() {
+            Mockito.`when`(bCryptPasswordEncoder.matches(password, hashedPassword)).thenReturn(false)
+            userAuthRepository.save(hashedUser).block()
+
+            webTestClient.post()
+                .uri("/v1/auth/user/spring-authentication")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(plainUser))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is5xxServerError
+                .expectBody<Exception>()
+        }
+
+        @Test
+        fun `should throw error if the user to be authenticated does not exist`() {
+            webTestClient.post()
+                .uri("/v1/auth/user/spring-authentication")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(plainUser))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is5xxServerError
+                .expectBody<Exception>()
+                .consumeWith {
+                    it.responseBody!!.message shouldBe userDoesNotExist
+                }
+        }
     }
 }

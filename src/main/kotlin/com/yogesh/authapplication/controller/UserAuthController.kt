@@ -34,4 +34,11 @@ class UserAuthController(
     ): Mono<Boolean> {
         return userAuthService.authenticate(user)
     }
+
+    @PostMapping("/user/spring-authentication")
+    fun authenticateUserV2(
+        @RequestBody user: User
+    ): Mono<Boolean> {
+        return userAuthService.authenticateUsingAuthenticationManager(user)
+    }
 }

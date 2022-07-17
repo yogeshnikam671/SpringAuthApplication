@@ -19,6 +19,7 @@ class UserAuthControllerTest {
     private val userAuthService = mockk<UserAuthService> {
         every { register(any()) } returns Mono.just(true)
         every { authenticate(any()) } returns Mono.just(true)
+        every { authenticateUsingAuthenticationManager(any()) } returns Mono.just(true)
     }
 
     private val userAuthController = UserAuthController(
@@ -40,6 +41,15 @@ class UserAuthControllerTest {
 
         verify(exactly = 1) {
             userAuthService.authenticate(plainUser)
+        }
+    }
+
+    @Test
+    fun `should authenticate user using authentication manager`() {
+        userAuthController.authenticateUserV2(plainUser).block()
+
+        verify(exactly = 1) {
+            userAuthService.authenticateUsingAuthenticationManager(plainUser)
         }
     }
 }

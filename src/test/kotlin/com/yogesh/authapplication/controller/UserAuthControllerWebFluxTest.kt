@@ -68,4 +68,20 @@ class UserAuthControllerWebFluxTest(
             .expectBody<Boolean>()
             .isEqualTo(true)
     }
+
+    @Test
+    fun `should authenticate user using authentication manager`() {
+        Mockito.`when`(userAuthService.authenticateUsingAuthenticationManager(plainUser))
+            .thenReturn(Mono.just(true))
+
+        webTestClient.post()
+            .uri("/v1/auth/user/spring-authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(BodyInserters.fromValue(plainUser))
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().is2xxSuccessful
+            .expectBody<Boolean>()
+            .isEqualTo(true)
+    }
 }

@@ -8,6 +8,8 @@ import com.yogesh.authapplication.constant.Messages.userRegisteredSuccessfully
 import com.yogesh.authapplication.model.User
 import com.yogesh.authapplication.repository.UserAuthRepository
 import org.apache.logging.log4j.LogManager
+import org.springframework.security.authentication.ReactiveAuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -16,7 +18,8 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 @Service
 class UserAuthService(
     private val bcryptPasswordEncoder: BCryptPasswordEncoder,
-    private val userAuthRepository: UserAuthRepository
+    private val userAuthRepository: UserAuthRepository,
+    private val reactiveAuthenticationManager: ReactiveAuthenticationManager
 ) {
     private val logger = LogManager.getLogger(UserAuthService::class)
 
@@ -49,6 +52,15 @@ class UserAuthService(
         }.doOnSuccess {
             val logMessage = if (it) userAuthenticatedSuccessfully else invalidPassword
             logger.info(logMessage)
+        }
+    }
+
+    fun authenticateUsingAuthenticationManager(user: User): Mono<Boolean> {
+        val (username, password) = user
+        val token = UsernamePasswordAuthenticationToken(username, password)
+
+        return reactiveAuthenticationManager.authenticate(token).map {
+            it.isAuthenticated
         }
     }
 }
