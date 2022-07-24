@@ -4,7 +4,9 @@ import com.yogesh.authapplication.configuration.SecurityTestConfiguration
 import com.yogesh.authapplication.constant.ErrorMessages.userAlreadyExists
 import com.yogesh.authapplication.constant.ErrorMessages.userDoesNotExist
 import com.yogesh.authapplication.model.User
+import com.yogesh.authapplication.model.response.AuthenticationResponse
 import com.yogesh.authapplication.repository.UserAuthRepository
+import com.yogesh.authapplication.utils.TokenManager
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
 import org.junit.jupiter.api.AfterEach
@@ -23,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.security.core.userdetails.User as SecureUser
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -35,9 +38,12 @@ class UserAuthIntegrationTest(
     // mocked data
     private val username = "username"
     private val password = "password"
+    private val jwtToken = "jwtToken"
+    private val userRole = "USER"
     private val plainUser = User(username, password)
     private val hashedPassword = "hashedPassword"
     private val hashedUser = User(username, hashedPassword)
+    private val userDetails = SecureUser.withUsername(username).password(hashedPassword).roles(userRole).build()
 
     // mocked dependencies
     /*
@@ -47,10 +53,19 @@ class UserAuthIntegrationTest(
     @MockBean
     private lateinit var bCryptPasswordEncoder: BCryptPasswordEncoder
 
+    /*
+        Since we are adding the expiration time using Date, the token generated will be different at every instance.
+        Hence, mocking the same.
+    */
+    @MockBean
+    private lateinit var tokenManager: TokenManager
+
     @BeforeEach
     fun setup() {
         Mockito.`when`(bCryptPasswordEncoder.encode(password)).thenReturn(hashedPassword)
         Mockito.`when`(bCryptPasswordEncoder.matches(password, hashedPassword)).thenReturn(true)
+
+        Mockito.`when`(tokenManager.generateJwtToken(userDetails)).thenReturn(jwtToken)
     }
 
     @AfterEach
@@ -152,8 +167,11 @@ class UserAuthIntegrationTest(
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is2xxSuccessful
-                .expectBody<Boolean>()
-                .isEqualTo(true)
+                .expectBody<AuthenticationResponse>()
+                .consumeWith {
+                    it.responseBody!!.isAuthenticated shouldBe true
+                    it.responseBody!!.token shouldBe jwtToken
+                }
         }
 
         @Test

@@ -2,7 +2,9 @@ package com.yogesh.authapplication.controller
 
 import com.yogesh.authapplication.configuration.SecurityTestConfiguration
 import com.yogesh.authapplication.model.User
+import com.yogesh.authapplication.model.response.AuthenticationResponse
 import com.yogesh.authapplication.service.UserAuthService
+import io.kotlintest.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mockito
@@ -31,7 +33,12 @@ class UserAuthControllerWebFluxTest(
     // mocked data
     private val username = "username"
     private val password = "password"
+    private val jwtToken = "jwtToken"
     private val plainUser = User(username, password)
+    private val authenticationResponse = AuthenticationResponse(
+        token = jwtToken,
+        isAuthenticated = true
+    )
 
     // mocked dependencies
     @MockBean
@@ -72,7 +79,7 @@ class UserAuthControllerWebFluxTest(
     @Test
     fun `should authenticate user using authentication manager`() {
         Mockito.`when`(userAuthService.authenticateUsingAuthenticationManager(plainUser))
-            .thenReturn(Mono.just(true))
+            .thenReturn(Mono.just(authenticationResponse))
 
         webTestClient.post()
             .uri("/v1/auth/user/spring-authentication")
@@ -81,7 +88,10 @@ class UserAuthControllerWebFluxTest(
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().is2xxSuccessful
-            .expectBody<Boolean>()
-            .isEqualTo(true)
+            .expectBody<AuthenticationResponse>()
+            .consumeWith {
+                it.responseBody!!.isAuthenticated shouldBe true
+                it.responseBody!!.token shouldBe jwtToken
+            }
     }
 }

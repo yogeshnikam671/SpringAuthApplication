@@ -4,6 +4,7 @@ import com.yogesh.authapplication.constant.ErrorMessages.userAlreadyExists
 import com.yogesh.authapplication.constant.ErrorMessages.userDoesNotExist
 import com.yogesh.authapplication.model.User
 import com.yogesh.authapplication.repository.UserAuthRepository
+import com.yogesh.authapplication.utils.TokenManager
 import io.kotlintest.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.test.test
+import org.springframework.security.core.userdetails.User as SecureUser
 
 class UserAuthServiceTest {
 
@@ -25,11 +27,14 @@ class UserAuthServiceTest {
     private val username = "username"
     private val password = "password"
     private val hashedPassword = "hashedPassword"
+    private val userRole = "USER"
+    private val jwtToken = "jwtToken"
     private val hashedUser = User(username, hashedPassword)
     private val plainUser = User(username, password)
     private val validAuthentication = mockk<Authentication> {
         every { isAuthenticated } returns true
     }
+    private val userDetails = SecureUser.withUsername(username).password(hashedPassword).roles(userRole).build()
 
     // mocked dependencies
     private val bcryptPasswordEncoder = mockk<BCryptPasswordEncoder> {
@@ -40,12 +45,20 @@ class UserAuthServiceTest {
     private val reactiveAuthenticationManager = mockk<ReactiveAuthenticationManager> {
         every { authenticate(any()) } returns validAuthentication.toMono()
     }
+    private val userAuthDetailsService = mockk<UserAuthDetailsService> {
+        every { findByUsername(username) } returns userDetails.toMono()
+    }
+    private val tokenManager = mockk<TokenManager> {
+        every { generateJwtToken(userDetails) } returns jwtToken
+    }
 
     // tests
     private val userAuthService = UserAuthService(
+        userAuthDetailsService,
         bcryptPasswordEncoder,
         userAuthRepository,
-        reactiveAuthenticationManager
+        reactiveAuthenticationManager,
+        tokenManager
     )
 
     @Nested
@@ -151,10 +164,14 @@ class UserAuthServiceTest {
             verify(exactly = 1) {
                 reactiveAuthenticationManager.authenticate(capture(authenticationSlot))
             }
+            verify(exactly = 1) {
+                tokenManager.generateJwtToken(userDetails)
+            }
 
             authenticationSlot.captured.credentials shouldBe plainUser.password
             authenticationSlot.captured.principal shouldBe plainUser.username
-            response shouldBe true
+            response!!.isAuthenticated shouldBe true
+            response.token shouldBe jwtToken
         }
     }
 }

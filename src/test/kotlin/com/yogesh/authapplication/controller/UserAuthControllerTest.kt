@@ -1,6 +1,7 @@
 package com.yogesh.authapplication.controller
 
 import com.yogesh.authapplication.model.User
+import com.yogesh.authapplication.model.response.AuthenticationResponse
 import com.yogesh.authapplication.service.UserAuthService
 import io.mockk.every
 import io.mockk.mockk
@@ -13,13 +14,18 @@ class UserAuthControllerTest {
     // mocked data
     private val username = "username"
     private val password = "password"
+    private val jwtToken = "jwtToken"
     private val plainUser = User(username, password)
+    private val authenticationResponse = AuthenticationResponse(
+        token = jwtToken,
+        isAuthenticated = true
+    )
 
     // mocked dependencies
     private val userAuthService = mockk<UserAuthService> {
         every { register(any()) } returns Mono.just(true)
         every { authenticate(any()) } returns Mono.just(true)
-        every { authenticateUsingAuthenticationManager(any()) } returns Mono.just(true)
+        every { authenticateUsingAuthenticationManager(any()) } returns Mono.just(authenticationResponse)
     }
 
     private val userAuthController = UserAuthController(

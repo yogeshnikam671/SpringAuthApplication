@@ -1,6 +1,7 @@
 package com.yogesh.authapplication.controller
 
 import com.yogesh.authapplication.model.User
+import com.yogesh.authapplication.model.response.AuthenticationResponse
 import com.yogesh.authapplication.service.UserAuthService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -38,7 +39,7 @@ class UserAuthController(
     @PostMapping("/user/spring-authentication")
     fun authenticateUserV2(
         @RequestBody user: User
-    ): Mono<Boolean> {
+    ): Mono<AuthenticationResponse> {
         return userAuthService.authenticateUsingAuthenticationManager(user)
     }
 }

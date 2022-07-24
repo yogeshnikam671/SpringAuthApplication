@@ -60,3 +60,10 @@ concatenated and encoded in a modified Base-64.
 The first 22 characters decode to a 16-byte value for the salt. 
 
 The remaining characters are cipher text to be compared for authentication.
+
+### Authorization
+
+For authorization, we will be using jwt tokens. `jjwt` library is used to create and validate JWT tokens.
+reference - https://github.com/jwtk/jjwt
+
+

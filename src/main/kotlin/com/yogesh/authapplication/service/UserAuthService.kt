@@ -6,7 +6,9 @@ import com.yogesh.authapplication.constant.ErrorMessages.userDoesNotExist
 import com.yogesh.authapplication.constant.Messages.userAuthenticatedSuccessfully
 import com.yogesh.authapplication.constant.Messages.userRegisteredSuccessfully
 import com.yogesh.authapplication.model.User
+import com.yogesh.authapplication.model.response.AuthenticationResponse
 import com.yogesh.authapplication.repository.UserAuthRepository
+import com.yogesh.authapplication.utils.TokenManager
 import org.apache.logging.log4j.LogManager
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -17,9 +19,11 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class UserAuthService(
+    private val userAuthDetailsService: UserAuthDetailsService,
     private val bcryptPasswordEncoder: BCryptPasswordEncoder,
     private val userAuthRepository: UserAuthRepository,
-    private val reactiveAuthenticationManager: ReactiveAuthenticationManager
+    private val reactiveAuthenticationManager: ReactiveAuthenticationManager,
+    private val tokenManager: TokenManager
 ) {
     private val logger = LogManager.getLogger(UserAuthService::class)
 
@@ -55,12 +59,18 @@ class UserAuthService(
         }
     }
 
-    fun authenticateUsingAuthenticationManager(user: User): Mono<Boolean> {
+    fun authenticateUsingAuthenticationManager(user: User): Mono<AuthenticationResponse> {
         val (username, password) = user
         val token = UsernamePasswordAuthenticationToken(username, password)
 
-        return reactiveAuthenticationManager.authenticate(token).map {
-            it.isAuthenticated
-        }
+        return reactiveAuthenticationManager.authenticate(token)
+            .zipWith(
+                userAuthDetailsService.findByUsername(username)
+            ).map {
+                AuthenticationResponse(
+                    token = tokenManager.generateJwtToken(it.t2),
+                    isAuthenticated = it.t1.isAuthenticated
+                )
+            }
     }
 }
