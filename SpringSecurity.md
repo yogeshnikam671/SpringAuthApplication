@@ -32,4 +32,47 @@ we can see that authenticationManager internally takes care of validating the gi
 the error scenarios if any.
 
 
+### Authorization using JWT and integrating it with Spring Security
+
+As mentioned in README.md, we used `jjwt` library to create and validate the JWT tokens.
+Now, apart from the registration/login endpoints, the other endpoints are expected to send the JWT token
+returned by the registration/login endpoints in the `Authorization` header of the request.
+
+We have to configure the spring security web filter chain to validate these tokens on such requests.
+To do this, we will take help of filters and `addFilterAt` of the `ServerHttpSecurity` chain.
+We will add the filter at `SecurityWebFiltersOrder.AUTHENTICATION`.
+
+To create the filter for authorization, we made use of `AuthenticationWebFilter`.
+
+The `AuthenticationWebFilter` requires two things: 
+1. `ReactiveAuthenticationManager`
+2. `ServerAuthenticationConverter`
+
+We know what a `ReactiveAuthenticationManager` is, let's understand what is a `ServerAuthenticationConverter` before moving ahead
+with `AuthenticationWebFilter`
+
+`ServerAuthenticationConverter` -> 
+
+The ServerAuthenticationConverter is basically used to convert a `ServerWebExchange` into an`Authentication` object. 
+We have to override the `convert` method of this interface to define how the ServerWebExchange can be converted into an Authentication object.
+
+In our case `JwtServerAuthenticationConverter`, validates the JWT token received in the headers and then extracts the username from the token and
+with the use of `UserDetailsService`, takes out the `UserDetails` from database and creates an Authentication object using the auth details saved in the database.
+
+Note - Since, the Authentication object is created using the data stored in the database, the password is in Bcrypt encoded format and not plain text.
+Because of this, the default `ReactiveAuthenticationManager` won't work, since the passwordEncoder set for that one is `BcryptPasswordEncoder`.
+
+Hence, we created a new `NoOpReactiveAuthenticationManager` whose passwordEncoder is set to `NoOpPasswordEncoder` so that it would
+work for bcrypt encoded passwords as well.
+
+So this is what a `ServerAuthenticationConverter` is, and we got to know how we can use it to intercept the request and do some validations as well like
+validating the JWT token.
+
+Ok, so why does `AuthenticationWebFilter` need these two things ?
+The `AuthenticationWebFilter` internally converts the `ServerWebExchange` into an `Authentication` object using the `ServerAuthenticationConverter`
+and later authenticates it using the `ReactiveAuthenticationManager` provided.
+
+This is how we can create the filter and add it in the filter chain to intercept and authorize all the requests using JWT token validation.
+
+
 

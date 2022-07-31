@@ -12,6 +12,7 @@ import java.util.*
 class TokenManager {
 
     private val logger = LogManager.getLogger(TokenManager::class)
+    private val jwtParser = Jwts.parserBuilder().setSigningKey(HMAC_COMPATIBLE_SECRET.toByteArray()).build()
 
     fun generateJwtToken(userDetails: UserDetails): String {
         val currentTime = Date(System.currentTimeMillis())
@@ -29,7 +30,6 @@ class TokenManager {
     }
 
     fun validateJwtToken(userDetails: UserDetails, token: String): Boolean {
-        val jwtParser = Jwts.parserBuilder().setSigningKey(HMAC_COMPATIBLE_SECRET.toByteArray()).build()
         return try {
             val claims = jwtParser.parseClaimsJws(token).body
 
@@ -44,8 +44,12 @@ class TokenManager {
         }
     }
 
+    fun extractUsername(token: String): String {
+        return jwtParser.parseClaimsJws(token).body.subject
+    }
+
     companion object {
-        private const val TOKEN_VALIDITY = 120 * 1000 // 120 seconds
+        private const val TOKEN_VALIDITY = 1000 * 1000 // 120 seconds
         private const val HMAC_COMPATIBLE_SECRET = "yogeshnikam@1029384756#1234567890^nikam"
     }
 }
