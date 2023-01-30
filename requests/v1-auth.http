@@ -4,7 +4,7 @@ http://localhost:8080/v1/auth/dummy-unauthorized
 ### Authorization using JWT token returned by authentication endpoints
 
 http://localhost:8080/v1/auth/dummy-authorized
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5b2dlc2giLCJpYXQiOjE2NTg2ODIwMzIsImV4cCI6MTY1ODY4MzAzMn0.qdTXkKE1Kj-Cm0d2aej4HRIbC13tSLDK74EtlwHCzgM
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5b2dlc2giLCJpYXQiOjE2NzUwOTk0MDksImV4cCI6MTY3NTA5OTQzOX0.AxvBsry6SSszA2WwQIndVzUCse2Rw8aG6lq5S1dso_Q
 
 ###
 POST http://localhost:8080/v1/auth/user/registration

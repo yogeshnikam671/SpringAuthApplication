@@ -49,7 +49,7 @@ class TokenManager {
     }
 
     companion object {
-        private const val TOKEN_VALIDITY = 1000 * 1000 // 120 seconds
+        private const val TOKEN_VALIDITY = 120 * 1000 // 120 seconds
         private const val HMAC_COMPATIBLE_SECRET = "yogeshnikam@1029384756#1234567890^nikam"
     }
 }

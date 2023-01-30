@@ -1,8 +1,8 @@
 package com.yogesh.authapplication.configuration
 
 import com.yogesh.authapplication.configuration.filters.JwtServerAuthenticationConverter
+import com.yogesh.authapplication.security.JwtAuthenticationManager
 import com.yogesh.authapplication.service.UserAuthDetailsService
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.NoOpPasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 
@@ -28,8 +27,7 @@ class SecurityConfiguration(
     @Bean
     fun filterChain(
         http: ServerHttpSecurity,
-        @Qualifier("noOpReactiveAuthenticationManager")
-        noOpReactiveAuthenticationManager: UserDetailsRepositoryReactiveAuthenticationManager
+        jwtAuthenticationManager: JwtAuthenticationManager
     ): SecurityWebFilterChain {
         http.authorizeExchange()
             .pathMatchers("/v1/auth/dummy-unauthorized", "/v1/auth/user/*")
@@ -38,7 +36,7 @@ class SecurityConfiguration(
             .authenticated()
             .and()
             .addFilterAt(
-                bearerAuthenticationFilter(noOpReactiveAuthenticationManager),
+                bearerAuthenticationFilter(jwtAuthenticationManager),
                 SecurityWebFiltersOrder.AUTHENTICATION
             )
             .csrf().disable()
@@ -69,19 +67,10 @@ class SecurityConfiguration(
         return reactiveAuthenticationManager
     }
 
-    @Bean
-    @Qualifier("noOpReactiveAuthenticationManager")
-    fun noOpReactiveAuthenticationManager(): UserDetailsRepositoryReactiveAuthenticationManager {
-        val reactiveAuthenticationManager = UserDetailsRepositoryReactiveAuthenticationManager(userAuthDetailsService)
-        reactiveAuthenticationManager.setPasswordEncoder(NoOpPasswordEncoder.getInstance())
-
-        return reactiveAuthenticationManager
-    }
-
     fun bearerAuthenticationFilter(
-        noOpReactiveAuthenticationManager: UserDetailsRepositoryReactiveAuthenticationManager
+        jwtAuthenticationManager: JwtAuthenticationManager
     ): AuthenticationWebFilter {
-        val bearerAuthenticationFilter = AuthenticationWebFilter(noOpReactiveAuthenticationManager)
+        val bearerAuthenticationFilter = AuthenticationWebFilter(jwtAuthenticationManager)
         bearerAuthenticationFilter.setServerAuthenticationConverter(jwtServerAuthenticationConverter)
         return bearerAuthenticationFilter
     }

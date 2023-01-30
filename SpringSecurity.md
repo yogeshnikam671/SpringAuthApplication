@@ -75,4 +75,14 @@ and later authenticates it using the `ReactiveAuthenticationManager` provided.
 This is how we can create the filter and add it in the filter chain to intercept and authorize all the requests using JWT token validation.
 
 
+In the latest changes, we have got rid of the `NoOpReactiveAuthenticationManger` by creating our own custom
+authenticationManager by extending it. It is named as `JwtAuthenticationManager`. This authentication manager basically sets a authentication object
+in the security context without any username or password.
+
+This is the valid behaviour that we want during JWT token validation since we do not want to authenticate the user again
+but just validate the token.
+
+With this, we need not use the deprecated `NoOpReactiveAuthenticationManager` and keep it clean.
+
+
 
